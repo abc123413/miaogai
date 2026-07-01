@@ -92,7 +92,7 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
       ),
       enableSorting: false,
       enableHiding: false,
-      size: 40,
+      size: 36,
     },
     {
       accessorKey: 'name',
@@ -100,7 +100,7 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
       cell: ({ row }) => (
         <span className='font-medium'>{row.getValue('name')}</span>
       ),
-      size: 180,
+      size: 120,
       meta: { mobileTitle: true },
     },
     {
@@ -119,7 +119,7 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
         )
       },
       filterFn: (row, id, value) => value.includes(String(row.getValue(id))),
-      size: 120,
+      size: 80,
       meta: { mobileBadge: true },
     },
     {
@@ -128,7 +128,7 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
       header: t('API Key'),
       cell: ({ row }) => <ApiKeyCell apiKey={row.original} />,
       enableSorting: false,
-      size: 260,
+      size: 180,
     },
     {
       id: 'quota',
@@ -154,7 +154,7 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
 
         return (
           <Tooltip>
-            <TooltipTrigger render={<div className='w-[150px] space-y-1' />}>
+            <TooltipTrigger render={<div className='w-[120px] space-y-1' />}>
               <div className='flex justify-between text-xs'>
                 <span className='font-medium tabular-nums'>
                   {formatQuota(remaining)}
@@ -185,7 +185,7 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
           </Tooltip>
         )
       },
-      size: 170,
+      size: 140,
     },
     {
       accessorKey: 'group',
@@ -230,7 +230,7 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
           </TruncatedCell>
         )
       },
-      size: 160,
+      size: 110,
       meta: { mobileHidden: true },
     },
     {
@@ -239,7 +239,7 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
       header: t('Models'),
       cell: ({ row }) => <ModelLimitsCell apiKey={row.original} />,
       enableSorting: false,
-      size: 160,
+      size: 110,
       meta: { mobileHidden: true },
     },
     {
@@ -248,7 +248,7 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
       header: t('IP Restriction'),
       cell: ({ row }) => <IpRestrictionsCell apiKey={row.original} />,
       enableSorting: false,
-      size: 160,
+      size: 110,
       meta: { mobileHidden: true },
     },
     {
@@ -259,7 +259,7 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
           {formatTimestampToDate(row.getValue('created_time'))}
         </span>
       ),
-      size: 180,
+      size: 100,
       meta: { mobileHidden: true },
     },
     {
@@ -276,7 +276,7 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
           </span>
         )
       },
-      size: 180,
+      size: 100,
       meta: { mobileHidden: true },
     },
     {
@@ -306,7 +306,7 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
           </span>
         )
       },
-      size: 180,
+      size: 100,
       meta: { mobileHidden: true },
     },
     {
