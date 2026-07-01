@@ -16,6 +16,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import type { MaintenanceSettings } from '../types'
+
 export type HeaderNavAccessConfig = {
   enabled: boolean
   requireAuth: boolean
@@ -239,4 +241,19 @@ export function serializeSidebarModulesAdmin(
   config: SidebarModulesAdminConfig
 ): string {
   return JSON.stringify(config)
+}
+
+export const DEFAULT_MAINTENANCE_SETTINGS: MaintenanceSettings = {
+  Notice: '',
+  LogConsumeEnabled: true,
+  HeaderNavModules: '',
+  SidebarModulesAdmin: '',
+  'performance_setting.disk_cache_enabled': false,
+  'performance_setting.disk_cache_threshold_mb': 10,
+  'performance_setting.disk_cache_max_size_mb': 1024,
+  'performance_setting.disk_cache_path': '',
+  'performance_setting.monitor_enabled': false,
+  'performance_setting.monitor_cpu_threshold': 90,
+  'performance_setting.monitor_memory_threshold': 90,
+  'performance_setting.monitor_disk_threshold': 95,
 }

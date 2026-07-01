@@ -23,6 +23,21 @@ export type SystemOption = {
 
 export type SystemOptionKey = string
 
+export type MaintenanceSettings = {
+  Notice: string
+  LogConsumeEnabled: boolean
+  HeaderNavModules: string
+  SidebarModulesAdmin: string
+  'performance_setting.disk_cache_enabled': boolean
+  'performance_setting.disk_cache_threshold_mb': number
+  'performance_setting.disk_cache_max_size_mb': number
+  'performance_setting.disk_cache_path': string
+  'performance_setting.monitor_enabled': boolean
+  'performance_setting.monitor_cpu_threshold': number
+  'performance_setting.monitor_memory_threshold': number
+  'performance_setting.monitor_disk_threshold': number
+}
+
 export type SystemOptionsResponse = {
   success: boolean
   message: string
