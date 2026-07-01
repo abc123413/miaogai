@@ -16,20 +16,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useState, useCallback, useMemo, lazy, Suspense } from 'react'
-import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import { Eye, EyeOff } from 'lucide-react'
+import { useState, useCallback, lazy, Suspense } from 'react'
+import { getRouteApi } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/auth-store'
 import { ROLE } from '@/lib/roles'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { SectionPageLayout } from '@/components/layout'
 import { FadeIn } from '@/components/page-transition'
 import { ModelsChartPreferences } from './components/models/models-chart-preferences'
@@ -42,11 +34,7 @@ import {
   getSavedGranularity,
   saveChartPreferences,
 } from './lib'
-import {
-  type DashboardSectionId,
-  DASHBOARD_DEFAULT_SECTION,
-  DASHBOARD_SECTION_IDS,
-} from './section-registry'
+import { DASHBOARD_DEFAULT_SECTION } from './section-registry'
 import {
   type DashboardChartPreferences,
   type DashboardFilters,
@@ -74,21 +62,15 @@ const LazyPerformanceOverview = lazy(() =>
   }))
 )
 
-const LazyUserCharts = lazy(() =>
-  import('./components/users/user-charts').then((m) => ({
-    default: m.UserCharts,
-  }))
-)
-
-const LazyFlowCharts = lazy(() =>
-  import('./components/flow/flow-charts').then((m) => ({
-    default: m.FlowCharts,
-  }))
-)
-
 const LazyNotificationPanel = lazy(() =>
   import('./components/models/notification-panel').then((m) => ({
     default: m.NotificationPanel,
+  }))
+)
+
+const LazyUserCharts = lazy(() =>
+  import('./components/users/user-charts').then((m) => ({
+    default: m.UserCharts,
   }))
 )
 
@@ -145,25 +127,12 @@ function PerformanceOverviewFallback() {
   )
 }
 
-const SECTION_META: Record<DashboardSectionId, { titleKey: string }> = {
-  models: {
-    titleKey: 'Model Call Analytics',
-  },
-  flow: {
-    titleKey: 'Flow',
-  },
-  users: {
-    titleKey: 'User Analytics',
-  },
-}
-
 export function Dashboard() {
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const params = route.useParams()
   const userRole = useAuthStore((state) => state.auth.user?.role)
-  const activeSection = (params.section ??
-    DASHBOARD_DEFAULT_SECTION) as DashboardSectionId
+  const isAdmin = Boolean(userRole && userRole >= ROLE.ADMIN)
+  const activeSection = params.section ?? DASHBOARD_DEFAULT_SECTION
 
   const [modelData, setModelData] = useState<QuotaDataItem[]>([])
   const [dataLoading, setDataLoading] = useState(false)
@@ -182,7 +151,6 @@ export function Dashboard() {
       }
     }
   )
-  const [flowSensitiveVisible, setFlowSensitiveVisible] = useState(true)
 
   const handleFilterChange = useCallback((filters: DashboardFilters) => {
     setModelFilters(filters)
@@ -209,163 +177,76 @@ export function Dashboard() {
     []
   )
 
-  const meta = SECTION_META[activeSection] ?? SECTION_META.models
-  const isAdmin = Boolean(userRole && userRole >= ROLE.ADMIN)
-  const visibleSections = useMemo(
-    () =>
-      DASHBOARD_SECTION_IDS.filter(
-        (section) => section !== 'users' || isAdmin
-      ),
-    [isAdmin]
-  )
-  const handleSectionChange = useCallback(
-    (section: string) => {
-      void navigate({
-        to: '/dashboard/$section',
-        params: { section: section as DashboardSectionId },
-      })
-    },
-    [navigate]
-  )
-  const showSectionTabs = visibleSections.length > 1
-  const modelActions =
-    activeSection === 'models' ? (
-      <>
-        <ModelsChartPreferences
-          preferences={chartPreferences}
-          onPreferencesChange={handleChartPreferencesChange}
-        />
-        <ModelsFilter
-          preferences={chartPreferences}
-          currentFilters={modelFilters}
-          onFilterChange={handleFilterChange}
-          onReset={handleResetFilters}
-        />
-      </>
-    ) : null
-  const flowActions =
-    activeSection === 'flow' ? (
-      <>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant='ghost'
-                size='icon'
-                onClick={() => setFlowSensitiveVisible((prev) => !prev)}
-                aria-label={
-                  flowSensitiveVisible
-                    ? t('Hide sensitive data')
-                    : t('Show sensitive data')
-                }
-                className='text-muted-foreground hover:text-foreground size-8'
+  if (activeSection === 'users') {
+    return (
+      <SectionPageLayout>
+        <SectionPageLayout.Title>{t('User Analytics')}</SectionPageLayout.Title>
+        <SectionPageLayout.Content>
+          <FadeIn>
+            <Suspense fallback={<ModelChartsFallback />}>
+              <LazyUserCharts
+                filters={userChartsFilters}
+                onFiltersChange={setUserChartsFilters}
               />
-            }
-          >
-            {flowSensitiveVisible ? <Eye /> : <EyeOff />}
-          </TooltipTrigger>
-          <TooltipContent>
-            {flowSensitiveVisible
-              ? t('Hide sensitive data')
-              : t('Show sensitive data')}
-          </TooltipContent>
-        </Tooltip>
-        <ModelsFilter
-          preferences={chartPreferences}
-          currentFilters={modelFilters}
-          onFilterChange={handleFilterChange}
-          onReset={handleResetFilters}
-          titleKey='Flow Filters'
-          descriptionKey='Filter the traffic flow view by time range and user.'
-        />
-      </>
-    ) : null
-  const sectionActions = modelActions ?? flowActions
+            </Suspense>
+          </FadeIn>
+        </SectionPageLayout.Content>
+      </SectionPageLayout>
+    )
+  }
 
   return (
     <SectionPageLayout>
-      <SectionPageLayout.Title>{t(meta.titleKey)}</SectionPageLayout.Title>
+      <SectionPageLayout.Title>{t('Model Call Analytics')}</SectionPageLayout.Title>
       <SectionPageLayout.Content>
         <div className='space-y-3 sm:space-y-4'>
-            <div className='flex flex-wrap items-center justify-between gap-1.5 sm:gap-2'>
-              {showSectionTabs ? (
-                <Tabs value={activeSection} onValueChange={handleSectionChange}>
-                  <TabsList className='max-w-full flex-wrap justify-start group-data-horizontal/tabs:h-auto'>
-                    {visibleSections.map((section) => (
-                      <TabsTrigger key={section} value={section}>
-                        {t(SECTION_META[section].titleKey)}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </Tabs>
-              ) : (
-                <div />
-              )}
-              {sectionActions != null && (
-                <div className='flex shrink-0 flex-wrap items-center gap-1.5 sm:gap-2'>
-                  {sectionActions}
-                </div>
-              )}
-            </div>
-          {activeSection === 'models' && (
-            <>
-              <FadeIn>
-                <Suspense fallback={<LogStatCardsFallback />}>
-                  <LazyLogStatCards
-                    filters={modelFilters}
-                    onDataUpdate={handleDataUpdate}
-                  />
-                </Suspense>
-              </FadeIn>
-              {isAdmin && (
-                <FadeIn delay={0.05}>
-                  <Suspense fallback={<PerformanceOverviewFallback />}>
-                    <LazyPerformanceOverview />
-                  </Suspense>
-                </FadeIn>
-              )}
-              <FadeIn delay={0.1}>
-                <Suspense fallback={<ModelChartsFallback />}>
-                  <LazyConsumptionDistributionChart
-                    data={modelData}
-                    loading={dataLoading}
-                    defaultChartType={
-                      chartPreferences.consumptionDistributionChart
-                    }
-                    defaultAnalyticsTab={chartPreferences.modelAnalyticsChart}
-                    timeGranularity={
-                      modelFilters.time_granularity || DEFAULT_TIME_GRANULARITY
-                    }
-                  />
-                </Suspense>
-              </FadeIn>
-              <FadeIn delay={0.15}>
-                <Suspense fallback={<ModelChartsFallback />}>
-                  <LazyNotificationPanel />
-                </Suspense>
-              </FadeIn>
-            </>
-          )}
-          {activeSection === 'users' && (
-            <FadeIn>
-              <Suspense fallback={<ModelChartsFallback />}>
-                <LazyUserCharts
-                  filters={userChartsFilters}
-                  onFiltersChange={setUserChartsFilters}
-                />
+          <div className='flex flex-wrap items-center justify-end gap-1.5 sm:gap-2'>
+            <ModelsChartPreferences
+              preferences={chartPreferences}
+              onPreferencesChange={handleChartPreferencesChange}
+            />
+            <ModelsFilter
+              preferences={chartPreferences}
+              currentFilters={modelFilters}
+              onFilterChange={handleFilterChange}
+              onReset={handleResetFilters}
+            />
+          </div>
+          <FadeIn>
+            <Suspense fallback={<LogStatCardsFallback />}>
+              <LazyLogStatCards
+                filters={modelFilters}
+                onDataUpdate={handleDataUpdate}
+              />
+            </Suspense>
+          </FadeIn>
+          {isAdmin && (
+            <FadeIn delay={0.05}>
+              <Suspense fallback={<PerformanceOverviewFallback />}>
+                <LazyPerformanceOverview />
               </Suspense>
             </FadeIn>
           )}
-          {activeSection === 'flow' && (
-            <FadeIn>
-              <Suspense fallback={<ModelChartsFallback />}>
-                <LazyFlowCharts
-                  filters={modelFilters}
-                  sensitiveVisible={flowSensitiveVisible}
-                />
-              </Suspense>
-            </FadeIn>
-          )}
+          <FadeIn delay={0.1}>
+            <Suspense fallback={<ModelChartsFallback />}>
+              <LazyConsumptionDistributionChart
+                data={modelData}
+                loading={dataLoading}
+                defaultChartType={
+                  chartPreferences.consumptionDistributionChart
+                }
+                defaultAnalyticsTab={chartPreferences.modelAnalyticsChart}
+                timeGranularity={
+                  modelFilters.time_granularity || DEFAULT_TIME_GRANULARITY
+                }
+              />
+            </Suspense>
+          </FadeIn>
+          <FadeIn delay={0.15}>
+            <Suspense fallback={<ModelChartsFallback />}>
+              <LazyNotificationPanel />
+            </Suspense>
+          </FadeIn>
         </div>
       </SectionPageLayout.Content>
     </SectionPageLayout>

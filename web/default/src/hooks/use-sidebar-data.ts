@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import {
+  BarChart3,
   Box,
   CreditCard,
   FileText,
@@ -126,6 +127,11 @@ export function useSidebarData(): SidebarData {
             title: t('Users'),
             url: '/users',
             icon: Users,
+          },
+          {
+            title: t('User Analytics'),
+            url: '/dashboard/users',
+            icon: BarChart3,
           },
           {
             title: t('Redemption Codes'),
